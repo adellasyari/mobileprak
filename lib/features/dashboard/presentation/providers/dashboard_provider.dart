@@ -8,7 +8,7 @@ final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
 });
 
 // 2. FutureProvider untuk mengambil data secara async (sederhana)
-final dashboardDataProvider = FutureProvider<DashboardData>((ref) async {
+final dashboardDataProvider = FutureProvider.autoDispose<DashboardData>((ref) async {
   final repository = ref.watch(dashboardRepositoryProvider);
   return repository.getDashboardData();
 });
@@ -53,7 +53,7 @@ class DashboardNotifier extends StateNotifier<AsyncValue<DashboardData>> {
 
 // 4. Provider untuk DashboardNotifier
 final dashboardNotifierProvider =
-    StateNotifierProvider<DashboardNotifier, AsyncValue<DashboardData>>((ref) {
+    StateNotifierProvider.autoDispose<DashboardNotifier, AsyncValue<DashboardData>>((ref) {
   final repository = ref.watch(dashboardRepositoryProvider);
   return DashboardNotifier(repository);
 });

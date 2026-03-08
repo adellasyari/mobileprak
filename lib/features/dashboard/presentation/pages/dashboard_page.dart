@@ -5,73 +5,249 @@ import '../../../../core/widgets/common_widgets.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/dashboard_widgets.dart';
 
+// Comment out imports for pages that may not exist yet (prevents errors)
+import 'package:mobileprak/features/mahasiswa/presentation/pages/mahasiswa_page.dart';
+import 'package:mobileprak/features/mahasiswa_aktif/presentation/pages/mahasiswa_aktif_page.dart';
+import 'package:mobileprak/features/dosen/presentation/pages/dosen_page.dart';
+import 'package:mobileprak/features/profile/presentation/pages/profile_page.dart';
+
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({Key? key}) : super(key: key);
 
+  IconData _getIconForStat(String title) {
+    switch (title) {
+      case 'Mahasiswa':
+        return Icons.school_rounded;
+      case 'Mahasiswa Aktif':
+        return Icons.person_outline_rounded;
+      case 'Profil':
+        return Icons.workspace_premium_rounded;
+      case 'Dosen':
+        return Icons.people_outline_rounded;
+      default:
+        return Icons.analytics_outlined;
+    }
+  }
+
+  Route _createRoute(Widget page) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(1.0, 0.0);
+        const end = Offset.zero;
+        const curve = Curves.easeInOutCubic;
+        final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        final offsetAnimation = animation.drive(tween);
+        return SlideTransition(position: offsetAnimation, child: child);
+      },
+      transitionDuration: const Duration(milliseconds: 400),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+    return '${date.day} ${months[date.month - 1]} ${date.year}, ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Memantau (watch) data dari provider secara langsung
     final dashboardState = ref.watch(dashboardNotifierProvider);
     final selectedIndex = ref.watch(selectedStatIndexProvider);
 
     return Scaffold(
       body: dashboardState.when(
-        // 1. Tampilan saat data sedang dimuat (Loading)
         loading: () => const LoadingWidget(),
-        
-        // 2. Tampilan saat terjadi error
         error: (error, stack) => CustomErrorWidget(
           message: 'Gagal memuat data: ${error.toString()}',
-          onRetry: () {
-            ref.read(dashboardNotifierProvider.notifier).refresh();
-          },
+          onRetry: () => ref.read(dashboardNotifierProvider.notifier).refresh(),
         ),
-        
-        // 3. Tampilan saat data berhasil diambil
         data: (dashboardData) {
           return RefreshIndicator(
             onRefresh: () async {
-              await ref.read(dashboardNotifierProvider.notifier).refresh();
+              ref.invalidate(dashboardNotifierProvider);
             },
             child: CustomScrollView(
               slivers: [
-                // Bagian Header Biru
+                // Modern Header with Gradient
                 SliverToBoxAdapter(
-                  child: DashboardHeader(userName: dashboardData.userName),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Theme.of(context).primaryColor,
+                          Theme.of(context).primaryColor.withBlue(220),
+                        ],
+                      ),
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(32),
+                        bottomRight: Radius.circular(32),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).primaryColor.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: SafeArea(
+                      bottom: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('Selamat Datang! 👋',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                          )),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        dashboardData.userName,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: -0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: IconButton(
+                                    icon: const Icon(Icons.notifications_outlined),
+                                    color: Colors.white,
+                                    iconSize: 26,
+                                    onPressed: () {},
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.calendar_today_rounded, color: Colors.white, size: 18),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'Update: ${_formatDate(dashboardData.lastUpdate)}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                
-                // Bagian Kartu Statistik
+
+                // Stats Section with Modern Cards
                 SliverPadding(
-                  padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                  padding: const EdgeInsets.all(24),
                   sliver: SliverToBoxAdapter(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Statistik",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Statistik',
+                                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
+                            TextButton.icon(
+                              onPressed: () {
+                                ref.invalidate(dashboardNotifierProvider);
+                              },
+                              icon: const Icon(Icons.refresh_rounded, size: 18),
+                              label: const Text('Refresh'),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: AppConstants.paddingMedium),
+                        const SizedBox(height: 20),
+
                         GridView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
-                            crossAxisSpacing: AppConstants.paddingMedium,
-                            mainAxisSpacing: AppConstants.paddingMedium,
-                            childAspectRatio: 1.3,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 1.1,
                           ),
                           itemCount: dashboardData.stats.length,
                           itemBuilder: (context, index) {
-                            return StatCard(
-                              stats: dashboardData.stats[index],
+                            final stat = dashboardData.stats[index];
+                            return ModernStatCard(
+                              stats: stat,
+                              icon: _getIconForStat(stat.title),
+                              gradientColors: AppConstants.dashboardGradients[index % AppConstants.dashboardGradients.length],
                               isSelected: selectedIndex == index,
                               onTap: () {
-                                // Mengubah status kartu yang dipilih
                                 ref.read(selectedStatIndexProvider.notifier).state = index;
+
+                                final statTitle = stat.title;
+                                Widget? targetPage;
+
+                                // The navigation target pages are not available for most items.
+                                // We enable only the 'Dosen' navigation here; others remain commented.
+                                switch (statTitle) {
+                                  case 'Mahasiswa':
+                                    targetPage = const MahasiswaPage();
+                                    break;
+                                  case 'Mahasiswa Aktif':
+                                    targetPage = const MahasiswaAktifPage();
+                                    break;
+                                  case 'Dosen':
+                                    targetPage = const DosenPage();
+                                    break;
+                                  case 'Profil':
+                                    targetPage = const ProfilePage();
+                                    break;
+                                }
+
+                                if (targetPage != null) {
+                                  Navigator.push(context, _createRoute(targetPage));
+                                }
                               },
                             );
                           },
@@ -80,27 +256,17 @@ class DashboardPage extends ConsumerWidget {
                     ),
                   ),
                 ),
-                
-                // Spasi bawah
-                const SliverPadding(
-                  padding: EdgeInsets.only(bottom: AppConstants.paddingLarge),
-                ),
+
+                const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
               ],
             ),
           );
         },
       ),
-      
-      // Tombol Refresh Mengambang
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           ref.read(dashboardNotifierProvider.notifier).refresh();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Memperbarui data...'),
-              duration: Duration(seconds: 1),
-            ),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Memperbarui data...'), duration: Duration(seconds: 1)));
         },
         child: const Icon(Icons.refresh),
       ),
