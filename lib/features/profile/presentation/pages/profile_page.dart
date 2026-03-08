@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/widgets/common_widgets.dart';
+import 'package:mobileprak/core/widgets/common_widgets.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/profile_widget.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/widgets/common_widgets.dart';
+import 'package:mobileprak/core/widgets/common_widgets.dart';
 import '../providers/mahasiswa_aktif_provider.dart';
 import '../widgets/mahasiswa_aktif_widget.dart';
 
