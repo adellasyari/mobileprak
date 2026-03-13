@@ -23,7 +23,7 @@ class MahasiswaAktifPage extends ConsumerWidget {
           child: ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: list.length,
-            itemBuilder: (ctx, i) => ModernMahasiswaAktifCard(mahasiswa: list[i]),
+            itemBuilder: (ctx, i) => ModernMahasiswaAktifCard(mahasiswaAktif: list[i]),
           ),
         ),
       ),

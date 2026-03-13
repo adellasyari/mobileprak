@@ -1,37 +1,23 @@
+import 'package:dio/dio.dart';
 import '../models/mahasiswa_model.dart';
 
 class MahasiswaRepository {
-  /// Mendapatkan daftar mahasiswa
+  /// Mendapatkan daftar mahasiswa dari API comments
   Future<List<MahasiswaModel>> getMahasiswaList() async {
-    // Simulasi network delay (loading)
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final dio = Dio();
+      final response = await dio.get(
+        'https://jsonplaceholder.typicode.com/comments',
+        options: Options(headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }),
+      );
 
-    // Data dummy mahasiswa
-    return [
-      MahasiswaModel(
-        nama: 'Adella Putri Asyari',
-        nim: '21001001',
-        email: 'adella.putri.asyari@student.com',
-        jurusan: 'D4 Teknik Informatika',
-      ),
-      MahasiswaModel(
-        nama: 'Alifia Putri Marizka',
-        nim: '21001002',
-        email: 'alifia.putri.marizka@student.com',
-        jurusan: 'D4 Teknik Informatika',
-      ),
-      MahasiswaModel(
-        nama: 'Arviansyah',
-        nim: '21001003',
-        email: 'arviansyah@student.com',
-        jurusan: 'D4 Teknik Informatika',
-      ),
-      MahasiswaModel(
-        nama: 'Reta Hadiana',
-        nim: '21001004',
-        email: 'reta.hadiana@student.com',
-        jurusan: 'D4 Teknik Informatika',
-      ),
-    ];
+      final List<dynamic> data = response.data as List<dynamic>;
+      return data.map((json) => MahasiswaModel.fromJson(json as Map<String, dynamic>)).toList();
+    } catch (e) {
+      throw Exception('Gagal memuat data: $e');
+    }
   }
 }
