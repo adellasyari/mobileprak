@@ -1,23 +1,22 @@
+import 'package:mobileprak/core/network/dio_client.dart';
+import 'package:mobileprak/features/dosen/data/models/dosen_model.dart';
 import 'package:dio/dio.dart';
-import '../models/dosen_model.dart';
 
 class DosenRepository {
-  /// Mendapatkan daftar dosen
+  final DioClient _dioClient;
+
+  DosenRepository({DioClient? dioClient})
+      : _dioClient = dioClient ?? DioClient();
+
+  /// get data daftar dosen
   Future<List<DosenModel>> getDosenList() async {
     try {
-      final dio = Dio();
-      final response = await dio.get(
-        'https://jsonplaceholder.typicode.com/users',
-        options: Options(headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        }),
-      );
-
-      final List<dynamic> data = response.data as List<dynamic>;
-      return data.map((json) => DosenModel.fromJson(json as Map<String, dynamic>)).toList();
-    } catch (e) {
-      throw Exception('Gagal memuat data: $e');
+      // Memanggil endpoint '/users' melalui dioClient
+      final Response response = await _dioClient.dio.get('/users');
+      final List<dynamic> data = response.data;
+      return data.map((json) => DosenModel.fromJson(json)).toList();
+    } on DioException catch (e) {
+      throw Exception('Gagal memuat data dosen: ${e.response?.statusCode} ${e.message}');
     }
   }
 }

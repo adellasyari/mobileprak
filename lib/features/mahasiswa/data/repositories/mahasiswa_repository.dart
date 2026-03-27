@@ -1,23 +1,21 @@
+import 'package:mobileprak/core/network/dio_client.dart';
+import 'package:mobileprak/features/mahasiswa/data/models/mahasiswa_model.dart';
 import 'package:dio/dio.dart';
-import '../models/mahasiswa_model.dart';
 
 class MahasiswaRepository {
-  /// Mendapatkan daftar mahasiswa dari API comments
+  final DioClient _dioClient;
+
+  MahasiswaRepository({DioClient? dioClient})
+      : _dioClient = dioClient ?? DioClient();
+
   Future<List<MahasiswaModel>> getMahasiswaList() async {
     try {
-      final dio = Dio();
-      final response = await dio.get(
-        'https://jsonplaceholder.typicode.com/comments',
-        options: Options(headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        }),
-      );
-
-      final List<dynamic> data = response.data as List<dynamic>;
-      return data.map((json) => MahasiswaModel.fromJson(json as Map<String, dynamic>)).toList();
-    } catch (e) {
-      throw Exception('Gagal memuat data: $e');
+      // Mengambil data dari endpoint comments
+      final Response response = await _dioClient.dio.get('/comments');
+      final List<dynamic> data = response.data;
+      return data.map((json) => MahasiswaModel.fromJson(json)).toList();
+    } on DioException catch (e) {
+      throw Exception('Gagal memuat data mahasiswa: ${e.response?.statusCode} ${e.message}');
     }
   }
 }
